@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17.2
+    container_name: my_postgres_db
+    environment:
+      POSTGRES_DB: quarkus
+      POSTGRES_USER: quarkus
+      POSTGRES_PASSWORD: quarkus
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  flyway:
+    image: flyway/flyway:10.9.1
+    container_name: flyway_migration
+    depends_on:
+      - postgres
+    volumes:
+      - ./db/migration:/flyway/sql
+    command: -url=jdbc:postgresql://postgres:5432/quarkus -user=quarkus -password=quarkus migrate
+    environment:
+      FLYWAY_PLACEHOLDERS_ENABLED: "false"
+      FLYWAY_CONNECT_RETRIES: 10
